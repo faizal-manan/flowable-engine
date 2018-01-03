@@ -32,7 +32,7 @@ public class TaskXmlConverter extends PlanItemDefinitiomXmlConverter {
     }
 
     @Override
-    public boolean isCmmnElement() {
+    public boolean hasChildElements() {
         return true;
     }
 
@@ -66,10 +66,6 @@ public class TaskXmlConverter extends PlanItemDefinitiomXmlConverter {
             serviceTask.setResultVariableName(xtr.getAttributeValue(CmmnXmlConstants.FLOWABLE_EXTENSIONS_NAMESPACE, CmmnXmlConstants.ATTRIBUTE_RESULT_VARIABLE_NAME));
             task = serviceTask;
 
-        } else if (ServiceTask.DMN_TASK.equals(type)) {
-            ServiceTask serviceTask = new ServiceTask();
-            serviceTask.setType(type);
-            task = serviceTask;
         } else if (HttpServiceTask.HTTP_TASK.equals(type)) {
             HttpServiceTask httpServiceTask = new HttpServiceTask();
             if (StringUtils.isNotEmpty(className)) {
@@ -93,9 +89,22 @@ public class TaskXmlConverter extends PlanItemDefinitiomXmlConverter {
             task.setBlocking(Boolean.valueOf(isBlockingString));
         }
 
-        String isBlockingExpressionString = xtr.getAttributeValue(CmmnXmlConstants.FLOWABLE_EXTENSIONS_NAMESPACE, CmmnXmlConstants.ATTRIBUTE_IS_BLOCKING_EXPRESSION);
+        String isBlockingExpressionString = xtr.getAttributeValue(CmmnXmlConstants.FLOWABLE_EXTENSIONS_NAMESPACE, 
+                CmmnXmlConstants.ATTRIBUTE_IS_BLOCKING_EXPRESSION);
         if (StringUtils.isNotEmpty(isBlockingExpressionString)) {
             task.setBlockingExpression(isBlockingExpressionString);
+        }
+        
+        String isAsyncString = xtr.getAttributeValue(CmmnXmlConstants.FLOWABLE_EXTENSIONS_NAMESPACE, 
+                CmmnXmlConstants.ATTRIBUTE_IS_ASYNCHRONOUS);
+        if (StringUtils.isNotEmpty(isAsyncString)) {
+            task.setAsync(Boolean.valueOf(isAsyncString.toLowerCase()));
+        }
+        
+        String isExclusiveString = xtr.getAttributeValue(CmmnXmlConstants.FLOWABLE_EXTENSIONS_NAMESPACE, 
+                CmmnXmlConstants.ATTRIBUTE_IS_EXCLUSIVE);
+        if (StringUtils.isNotEmpty(isExclusiveString)) {
+            task.setExclusive(Boolean.valueOf(isExclusiveString));
         }
     }
 }

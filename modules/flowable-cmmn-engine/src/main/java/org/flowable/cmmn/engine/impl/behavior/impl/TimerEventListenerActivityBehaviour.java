@@ -12,19 +12,20 @@
  */
 package org.flowable.cmmn.engine.impl.behavior.impl;
 
-import java.text.ParseException;
 import java.util.Date;
 
+import org.flowable.cmmn.api.delegate.DelegatePlanItemInstance;
 import org.flowable.cmmn.engine.impl.behavior.CmmnActivityBehavior;
-import org.flowable.cmmn.engine.impl.behavior.CoreCmmnTriggerableActivityBehavior;
+import org.flowable.cmmn.engine.impl.behavior.CoreCmmnActivityBehavior;
+import org.flowable.cmmn.engine.impl.behavior.PlanItemActivityBehavior;
 import org.flowable.cmmn.engine.impl.job.TriggerTimerEventJobHandler;
 import org.flowable.cmmn.engine.impl.persistence.entity.PlanItemInstanceEntity;
 import org.flowable.cmmn.engine.impl.util.CommandContextUtil;
+import org.flowable.cmmn.model.PlanItemTransition;
 import org.flowable.cmmn.model.TimerEventListener;
 import org.flowable.engine.common.api.FlowableException;
 import org.flowable.engine.common.api.delegate.Expression;
 import org.flowable.engine.common.impl.calendar.BusinessCalendarManager;
-import org.flowable.engine.common.impl.calendar.CronExpression;
 import org.flowable.engine.common.impl.calendar.CycleBusinessCalendar;
 import org.flowable.engine.common.impl.calendar.DueDateBusinessCalendar;
 import org.flowable.engine.common.impl.el.ExpressionManager;
@@ -44,7 +45,7 @@ import org.joda.time.format.ISODateTimeFormat;
  * 
  * @author Joram Barrez
  */
-public class TimerEventListenerActivityBehaviour extends CoreCmmnTriggerableActivityBehavior {
+public class TimerEventListenerActivityBehaviour extends CoreCmmnActivityBehavior implements PlanItemActivityBehavior {
     
     protected String timerExpression;
     protected String startTriggerSourceRef;
@@ -57,10 +58,62 @@ public class TimerEventListenerActivityBehaviour extends CoreCmmnTriggerableActi
     }
     
     @Override
-    public void execute(CommandContext commandContext, PlanItemInstanceEntity planItemInstanceEntity) {
-        Object timerValue = resolveTimerExpression(commandContext, planItemInstanceEntity);
-        Date timerDueDate = resolveTimerDueDate(commandContext, timerValue);
-        
+    public void onStateTransition(CommandContext commandContext, DelegatePlanItemInstance planItemInstance, String transition) {
+        if (PlanItemTransition.CREATE.equals(transition)) {
+            PlanItemInstanceEntity planItemInstanceEntity = (PlanItemInstanceEntity) planItemInstance;
+            Object timerValue = resolveTimerExpression(commandContext, planItemInstanceEntity);
+            
+            Date timerDueDate = null;
+            boolean isRepeating = false;
+            if (timerValue != null) {
+                if (timerValue instanceof Date) {
+                    timerDueDate = (Date) timerValue;
+                    
+                } else if (timerValue instanceof DateTime) {
+                    DateTime timerDateTime = (DateTime) timerValue;
+                    timerDueDate = timerDateTime.toDate();
+                    
+                } else if (timerValue instanceof String) {
+                    String timerString = (String) timerValue;
+                    
+                    BusinessCalendarManager businessCalendarManager = CommandContextUtil.getCmmnEngineConfiguration(commandContext).getBusinessCalendarManager();
+                    if (isDurationString(timerString)) {
+                        timerDueDate = businessCalendarManager.getBusinessCalendar(DueDateBusinessCalendar.NAME).resolveDuedate(timerString);
+                        
+                    } else if (isRepetitionString(timerString)) {
+                        timerDueDate = businessCalendarManager.getBusinessCalendar(CycleBusinessCalendar.NAME).resolveDuedate(timerString);
+                        isRepeating = true;
+                        
+                    } else {
+                       
+                        // Try to parse as ISO8601 first
+                        try {
+                            timerDueDate = DateTime.parse(timerString).toDate();
+                        } catch (Exception e) { }
+                        
+                        // Try to parse as cron expression
+                        try {
+                            timerDueDate = businessCalendarManager.getBusinessCalendar(CycleBusinessCalendar.NAME).resolveDuedate(timerString);
+                            isRepeating = true;
+                            
+                        } catch (Exception pe) { }
+                        
+                    }
+                    
+                }
+            }
+            
+            if (timerDueDate == null) {
+                throw new FlowableException("Timer expression '" + timerExpression + "' did not resolve to java.util.Date, org.joda.time.DateTime, "
+                        + "an ISO8601 date/duration/repetition string or a cron expression");
+            }
+            
+            scheduleTimerJob(commandContext, planItemInstanceEntity, timerValue, timerDueDate, isRepeating);
+        }
+    }
+
+    protected void scheduleTimerJob(CommandContext commandContext, PlanItemInstanceEntity planItemInstanceEntity, 
+            Object timerValue, Date timerDueDate, boolean isRepeating) {
         if (timerDueDate != null) {
             JobServiceConfiguration jobServiceConfiguration = CommandContextUtil.getCmmnEngineConfiguration(commandContext).getJobServiceConfiguration();
             TimerJobEntity timer = jobServiceConfiguration.getTimerJobService().createTimerJob();
@@ -75,13 +128,17 @@ public class TimerEventListenerActivityBehaviour extends CoreCmmnTriggerableActi
             timer.setScopeType(VariableScopeType.CMMN);
             timer.setTenantId(planItemInstanceEntity.getTenantId());
             
-            if (timerValue instanceof String && isRepetitionString((String) timerValue)) {
+            if (isRepeating && timerValue instanceof String) {
                 timer.setRepeat(prepareRepeat((String) timerValue, CommandContextUtil.getCmmnEngineConfiguration(commandContext).getClock()));
             }
             
             jobServiceConfiguration.getTimerJobService().scheduleTimerJob(timer);
         }
-        
+    }
+    
+    @Override
+    public void execute(CommandContext commandContext, PlanItemInstanceEntity planItemInstanceEntity) {
+        CommandContextUtil.getAgenda(commandContext).planOccurPlanItemInstanceOperation(planItemInstanceEntity);
     }
 
     protected Object resolveTimerExpression(CommandContext commandContext, PlanItemInstanceEntity planItemInstanceEntity) {
@@ -90,54 +147,6 @@ public class TimerEventListenerActivityBehaviour extends CoreCmmnTriggerableActi
         return expression.getValue(planItemInstanceEntity);
     }
     
-    protected Date resolveTimerDueDate(CommandContext commandContext, Object timerValue) {
-        Date timerDueDate = null;
-        if (timerValue != null) {
-            if (timerValue instanceof Date) {
-                timerDueDate = (Date) timerValue;
-                
-            } else if (timerValue instanceof DateTime) {
-                DateTime timerDateTime = (DateTime) timerValue;
-                timerDueDate = timerDateTime.toDate();
-                
-            } else if (timerValue instanceof String) {
-                String timerString = (String) timerValue;
-                
-                BusinessCalendarManager businessCalendarManager = CommandContextUtil.getCmmnEngineConfiguration(commandContext).getBusinessCalendarManager();
-                if (isDurationString(timerString)) {
-                    timerDueDate = businessCalendarManager.getBusinessCalendar(DueDateBusinessCalendar.NAME).resolveDuedate(timerString);
-                    
-                } else if (isRepetitionString(timerString)) {
-                    timerDueDate = businessCalendarManager.getBusinessCalendar(CycleBusinessCalendar.NAME).resolveDuedate(timerString);
-                    
-                } else {
-                   
-                    // Try to parse as ISO8601 first
-                    try {
-                        timerDueDate = DateTime.parse(timerString).toDate();
-                    } catch (Exception e) { }
-                    
-                    // Try to parse as cron expression
-                    try {
-                        Clock clock = CommandContextUtil.getCmmnEngineConfiguration(commandContext).getClock();
-                        CronExpression cronExpression = new CronExpression(timerString, clock);
-                        if (cronExpression != null) {
-                            timerDueDate = cronExpression.getTimeAfter(clock.getCurrentTime());
-                        }
-                    } catch (ParseException pe) { }
-                    
-                }
-                
-            }
-        }
-        
-        if (timerDueDate == null) {
-            throw new FlowableException("Timer expression '" + timerExpression + "' did not resolve to java.util.Date, org.joda.time.DateTime, "
-                    + "an ISO8601 date/duration/repetition string or a cron expression");
-        }
-        return timerDueDate;
-    }
-
     protected boolean isRepetitionString(String timerString) {
         return timerString != null && timerString.startsWith("R");
     }
@@ -147,17 +156,16 @@ public class TimerEventListenerActivityBehaviour extends CoreCmmnTriggerableActi
     }
     
     public String prepareRepeat(String dueDate, Clock clock) {
-        if (isRepetitionString(dueDate) && dueDate.split("/").length == 2) {
+        if (dueDate.startsWith("R") && dueDate.split("/").length == 2) {
             DateTimeFormatter fmt = ISODateTimeFormat.dateTime();
             return dueDate.replace("/", "/" + fmt.print(new DateTime(clock.getCurrentTime(),DateTimeZone.forTimeZone(clock.getCurrentTimeZone()))) + "/");
         }
         return dueDate;
     }
-
     
     @Override
-    public void trigger(CommandContext commandContext, PlanItemInstanceEntity planItemInstanceEntity) {
-        CommandContextUtil.getAgenda(commandContext).planOccurPlanItemInstance(planItemInstanceEntity);
+    public void trigger(DelegatePlanItemInstance planItemInstance) {
+        execute(planItemInstance);
     }
-
+    
 }

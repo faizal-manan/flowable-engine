@@ -63,6 +63,7 @@ import org.flowable.cmmn.engine.impl.history.CmmnHistoryTaskManager;
 import org.flowable.cmmn.engine.impl.history.CmmnHistoryVariableManager;
 import org.flowable.cmmn.engine.impl.history.DefaultCmmnHistoryManager;
 import org.flowable.cmmn.engine.impl.interceptor.CmmnCommandInvoker;
+import org.flowable.cmmn.engine.impl.job.AsyncActivatePlanItemInstanceJobHandler;
 import org.flowable.cmmn.engine.impl.job.TriggerTimerEventJobHandler;
 import org.flowable.cmmn.engine.impl.parser.CmmnActivityBehaviorFactory;
 import org.flowable.cmmn.engine.impl.parser.CmmnParser;
@@ -227,6 +228,8 @@ public class CmmnEngineConfiguration extends AbstractEngineConfiguration impleme
     protected CmmnHistoryManager cmmnHistoryManager;
     protected ProcessInstanceService processInstanceService;
     protected Map<String, List<RuntimeInstanceStateChangeCallback>> caseInstanceStateChangeCallbacks;
+    
+    protected boolean executeServiceDbSchemaManagers = true;
 
     protected boolean enableSafeCmmnXml;
     protected CmmnActivityBehaviorFactory activityBehaviorFactory;
@@ -606,10 +609,13 @@ public class CmmnEngineConfiguration extends AbstractEngineConfiguration impleme
     public void initDbSchemaManager() {
         super.initDbSchemaManager();
         initCmmnDbSchemaManager();
-        initIdentityLinkDbSchemaManager();
-        initVariableDbSchemaManager();
-        initTaskDbSchemaManager();
-        initJobDbSchemaManager();
+        
+        if (executeServiceDbSchemaManagers) {
+            initIdentityLinkDbSchemaManager();
+            initVariableDbSchemaManager();
+            initTaskDbSchemaManager();
+            initJobDbSchemaManager();
+        }
     }
 
     protected void initCmmnDbSchemaManager() {
@@ -1087,6 +1093,7 @@ public class CmmnEngineConfiguration extends AbstractEngineConfiguration impleme
     public void initJobHandlers() {
         jobHandlers = new HashMap<>();
         jobHandlers.put(TriggerTimerEventJobHandler.TYPE, new TriggerTimerEventJobHandler());
+        jobHandlers.put(AsyncActivatePlanItemInstanceJobHandler.TYPE, new AsyncActivatePlanItemInstanceJobHandler());
 
         // if we have custom job handlers, register them
         if (customJobHandlers != null) {
@@ -1562,6 +1569,14 @@ public class CmmnEngineConfiguration extends AbstractEngineConfiguration impleme
     public CmmnEngineConfiguration setDataSource(DataSource dataSource) {
         this.dataSource = dataSource;
         return this;
+    }
+
+    public boolean isExecuteServiceDbSchemaManagers() {
+        return executeServiceDbSchemaManagers;
+    }
+
+    public void setExecuteServiceDbSchemaManagers(boolean executeServiceDbSchemaManagers) {
+        this.executeServiceDbSchemaManagers = executeServiceDbSchemaManagers;
     }
 
     public HistoryLevel getHistoryLevel() {

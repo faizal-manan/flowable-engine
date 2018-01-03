@@ -47,8 +47,11 @@ public interface CmmnXmlConstants {
     String ELEMENT_HUMAN_TASK = "humanTask";
     String ELEMENT_CASE_TASK = "caseTask";
     String ELEMENT_PROCESS_TASK = "processTask";
+    String ELEMENT_DECISION_TASK = "decisionTask";
     String ELEMENT_TIMER_EVENT_LISTENER = "timerEventListener";
     String ELEMENT_PLAN_ITEM = "planItem";
+    String ELEMENT_ITEM_CONTROL = "itemControl";
+    String ELEMENT_DEFAULT_CONTROL = "defaultControl";
     String ELEMENT_SENTRY = "sentry";
     String ELEMENT_PLAN_ITEM_ON_PART = "planItemOnPart";
     String ELEMENT_STANDARD_EVENT = "standardEvent";
@@ -58,8 +61,13 @@ public interface CmmnXmlConstants {
     String ELEMENT_EXTENSIONS = "extensionElements";
     String ELEMENT_HTTP_RESPONSE_HANDLER = "httpResponseHandler";
     String ELEMENT_HTTP_REQUEST_HANDLER = "httpRequestHandler";
+    
+    String ELEMENT_REQUIRED_RULE = "requiredRule";
+    String ELEMENT_MANUAL_ACTIVATION_RULE = "manualActivationRule";
+    String ELEMENT_REPETITION_RULE = "repetitionRule";
 
     String ELEMENT_PROCESS = "process";
+    String ELEMENT_DECISION = "decision";
     String ATTRIBUTE_IMPLEMENTATION_TYPE = "implementationType";
     String ATTRIBUTE_EXTERNAL_REF = "externalRef";
 
@@ -72,11 +80,18 @@ public interface CmmnXmlConstants {
     String ATTRIBUTE_SENTRY_REF = "sentryRef";
     String ATTRIBUTE_IS_BLOCKING = "isBlocking";
     String ATTRIBUTE_IS_BLOCKING_EXPRESSION = "isBlockingExpression";
-
+    String ATTRIBUTE_IS_ASYNCHRONOUS = "async";
+    String ATTRIBUTE_IS_EXCLUSIVE = "exclusive";
+    
+    String ATTRIBUTE_IS_AUTO_COMPLETE = "autoComplete";
+    String ATTRIBUTE_AUTO_COMPLETE_CONDITION = "autoCompleteCondition";
+    
     String ATTRIBUTE_CASE_REF = "caseRef";
     String ATTRIBUTE_PROCESS_REF = "processRef";
+    String ATTRIBUTE_DECISION_REF = "decisionRef";
 
     String ELEMENT_PROCESS_REF_EXPRESSION = "processRefExpression";
+    String ELEMENT_DECISION_REF_EXPRESSION = "decisionRefExpression";
     String ELEMENT_CONDITION = "condition";
 
     String ELEMENT_TIMER_EXPRESSION = "timerExpression";
@@ -105,6 +120,8 @@ public interface CmmnXmlConstants {
     String ATTRIBUTE_FORM_KEY = "formKey";
     String ATTRIBUTE_DUE_DATE = "dueDate";
     String ATTRIBUTE_CATEGORY = "category";
+    
+    String ATTRIBUTE_REPETITION_COUNTER_VARIABLE_NAME = "counterVariable";
 
     String ELEMENT_DI_CMMN = "CMMNDI";
     String ELEMENT_DI_DIAGRAM = "CMMNDiagram";

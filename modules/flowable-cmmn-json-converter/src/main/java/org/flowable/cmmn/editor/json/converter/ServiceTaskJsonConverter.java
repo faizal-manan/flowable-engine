@@ -12,9 +12,8 @@
  */
 package org.flowable.cmmn.editor.json.converter;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.StringUtils;
 import org.flowable.cmmn.editor.constants.CmmnStencilConstants;
 import org.flowable.cmmn.editor.json.converter.CmmnJsonConverter.CmmnModelIdHelper;
@@ -28,17 +27,16 @@ import org.flowable.cmmn.model.PlanItem;
 import org.flowable.cmmn.model.PlanItemDefinition;
 import org.flowable.cmmn.model.ServiceTask;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Tijs Rademakers
  */
 public class ServiceTaskJsonConverter extends BaseCmmnJsonConverter implements DecisionTableKeyAwareConverter {
 
-    private static final Map<String, String> TYPE_TO_STENCILSET = new HashMap<>();
+    protected static final Map<String, String> TYPE_TO_STENCILSET = new HashMap<>();
     static {
-        TYPE_TO_STENCILSET.put(ServiceTask.DMN_TASK, STENCIL_TASK_DECISION);
         TYPE_TO_STENCILSET.put(HttpServiceTask.HTTP_TASK, STENCIL_TASK_HTTP);
     }
 
@@ -81,26 +79,7 @@ public class ServiceTaskJsonConverter extends BaseCmmnJsonConverter implements D
 
         ServiceTask serviceTask = (ServiceTask) ((PlanItem) baseElement).getPlanItemDefinition();
 
-        if (ServiceTask.DMN_TASK.equalsIgnoreCase(serviceTask.getType())) {
-            for (FieldExtension fieldExtension : serviceTask.getFieldExtensions()) {
-                if (PROPERTY_DECISIONTABLE_REFERENCE_KEY.equals(fieldExtension.getFieldName())) {
-
-                    ObjectNode decisionReferenceNode = objectMapper.createObjectNode();
-                    propertiesNode.set(PROPERTY_DECISIONTABLE_REFERENCE, decisionReferenceNode);
-
-                    CmmnModelInfo modelInfo = decisionTableKeyMap != null ? decisionTableKeyMap.get(fieldExtension.getStringValue()) : null;
-                    if (modelInfo != null) {
-                        decisionReferenceNode.put("id", modelInfo.getId());
-                        decisionReferenceNode.put("name", modelInfo.getName());
-                        decisionReferenceNode.put("key", modelInfo.getKey());
-                    }
-
-                } else if (PROPERTY_DECISIONTABLE_THROW_ERROR_NO_HITS_KEY.equals(fieldExtension.getFieldName())) {
-                    propertiesNode.put(PROPERTY_DECISIONTABLE_THROW_ERROR_NO_HITS, Boolean.parseBoolean(fieldExtension.getStringValue()));
-                }
-            }
-
-        } else if (HttpServiceTask.HTTP_TASK.equalsIgnoreCase(serviceTask.getType())) {
+        if (HttpServiceTask.HTTP_TASK.equalsIgnoreCase(serviceTask.getType())) {
             if (StringUtils.isNotEmpty(serviceTask.getImplementation())) {
                 propertiesNode.put(PROPERTY_SERVICETASK_CLASS, serviceTask.getImplementation());
             }
@@ -141,24 +120,24 @@ public class ServiceTaskJsonConverter extends BaseCmmnJsonConverter implements D
 
         ServiceTask task = new ServiceTask();
         task.setType("java");
-        if (StringUtils.isNotEmpty(getPropertyValueAsString(PROPERTY_SERVICETASK_CLASS, elementNode))) {
+        if (StringUtils.isNotEmpty(CmmnJsonConverterUtil.getPropertyValueAsString(PROPERTY_SERVICETASK_CLASS, elementNode))) {
             task.setImplementationType(ImplementationType.IMPLEMENTATION_TYPE_CLASS);
-            task.setImplementation(getPropertyValueAsString(PROPERTY_SERVICETASK_CLASS, elementNode));
+            task.setImplementation(CmmnJsonConverterUtil.getPropertyValueAsString(PROPERTY_SERVICETASK_CLASS, elementNode));
 
-        } else if (StringUtils.isNotEmpty(getPropertyValueAsString(PROPERTY_SERVICETASK_EXPRESSION, elementNode))) {
+        } else if (StringUtils.isNotEmpty(CmmnJsonConverterUtil.getPropertyValueAsString(PROPERTY_SERVICETASK_EXPRESSION, elementNode))) {
             task.setImplementationType(ImplementationType.IMPLEMENTATION_TYPE_EXPRESSION);
-            task.setImplementation(getPropertyValueAsString(PROPERTY_SERVICETASK_EXPRESSION, elementNode));
+            task.setImplementation(CmmnJsonConverterUtil.getPropertyValueAsString(PROPERTY_SERVICETASK_EXPRESSION, elementNode));
 
-        } else if (StringUtils.isNotEmpty(getPropertyValueAsString(PROPERTY_SERVICETASK_DELEGATE_EXPRESSION, elementNode))) {
+        } else if (StringUtils.isNotEmpty(CmmnJsonConverterUtil.getPropertyValueAsString(PROPERTY_SERVICETASK_DELEGATE_EXPRESSION, elementNode))) {
             task.setImplementationType(ImplementationType.IMPLEMENTATION_TYPE_DELEGATEEXPRESSION);
-            task.setImplementation(getPropertyValueAsString(PROPERTY_SERVICETASK_DELEGATE_EXPRESSION, elementNode));
+            task.setImplementation(CmmnJsonConverterUtil.getPropertyValueAsString(PROPERTY_SERVICETASK_DELEGATE_EXPRESSION, elementNode));
         }
 
-        if (StringUtils.isNotEmpty(getPropertyValueAsString(PROPERTY_SERVICETASK_RESULT_VARIABLE, elementNode))) {
-            task.setResultVariableName(getPropertyValueAsString(PROPERTY_SERVICETASK_RESULT_VARIABLE, elementNode));
+        if (StringUtils.isNotEmpty(CmmnJsonConverterUtil.getPropertyValueAsString(PROPERTY_SERVICETASK_RESULT_VARIABLE, elementNode))) {
+            task.setResultVariableName(CmmnJsonConverterUtil.getPropertyValueAsString(PROPERTY_SERVICETASK_RESULT_VARIABLE, elementNode));
         }
 
-        JsonNode fieldsNode = getProperty(PROPERTY_SERVICETASK_FIELDS, elementNode);
+        JsonNode fieldsNode = CmmnJsonConverterUtil.getProperty(PROPERTY_SERVICETASK_FIELDS, elementNode);
         if (fieldsNode != null) {
             JsonNode itemsArrayNode = fieldsNode.get("fields");
             if (itemsArrayNode != null) {

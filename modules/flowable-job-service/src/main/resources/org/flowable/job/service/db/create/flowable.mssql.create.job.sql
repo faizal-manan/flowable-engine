@@ -35,7 +35,6 @@ create table ACT_RU_TIMER_JOB (
     EXECUTION_ID_ nvarchar(64),
     PROCESS_INSTANCE_ID_ nvarchar(64),
     PROC_DEF_ID_ nvarchar(64),
-    PROC_DEF_ID_ nvarchar(64),
     SCOPE_ID_ nvarchar(255),
     SUB_SCOPE_ID_ nvarchar(255),
     SCOPE_TYPE_ nvarchar(255),
@@ -61,7 +60,6 @@ create table ACT_RU_SUSPENDED_JOB (
     EXECUTION_ID_ nvarchar(64),
     PROCESS_INSTANCE_ID_ nvarchar(64),
     PROC_DEF_ID_ nvarchar(64),
-    PROC_DEF_ID_ nvarchar(64),
     SCOPE_ID_ nvarchar(255),
     SUB_SCOPE_ID_ nvarchar(255),
     SCOPE_TYPE_ nvarchar(255),
@@ -86,7 +84,6 @@ create table ACT_RU_DEADLETTER_JOB (
     EXCLUSIVE_ bit,
     EXECUTION_ID_ nvarchar(64),
     PROCESS_INSTANCE_ID_ nvarchar(64),
-    PROC_DEF_ID_ nvarchar(64),
     PROC_DEF_ID_ nvarchar(64),
     SCOPE_ID_ nvarchar(255),
     SUB_SCOPE_ID_ nvarchar(255),
@@ -181,12 +178,12 @@ create index ACT_IDX_TJOB_SCOPE on ACT_RU_TIMER_JOB(SCOPE_ID_, SCOPE_TYPE_);
 create index ACT_IDX_TJOB_SUB_SCOPE on ACT_RU_TIMER_JOB(SUB_SCOPE_ID_, SCOPE_TYPE_);
 create index ACT_IDX_TJOB_SCOPE_DEF on ACT_RU_TIMER_JOB(SCOPE_DEFINITION_ID_, SCOPE_TYPE_); 
 
-create index ACT_IDX_SJOB_SCOPE on ACT_RU_DEADLETTER_JOB(SCOPE_ID_, SCOPE_TYPE_);
-create index ACT_IDX_SJOB_SUB_SCOPE on ACT_RU_DEADLETTER_JOB(SUB_SCOPE_ID_, SCOPE_TYPE_);
-create index ACT_IDX_SJOB_SCOPE_DEF on ACT_RU_DEADLETTER_JOB(SCOPE_DEFINITION_ID_, SCOPE_TYPE_);   
+create index ACT_IDX_SJOB_SCOPE on ACT_RU_SUSPENDED_JOB(SCOPE_ID_, SCOPE_TYPE_);
+create index ACT_IDX_SJOB_SUB_SCOPE on ACT_RU_SUSPENDED_JOB(SUB_SCOPE_ID_, SCOPE_TYPE_);
+create index ACT_IDX_SJOB_SCOPE_DEF on ACT_RU_SUSPENDED_JOB(SCOPE_DEFINITION_ID_, SCOPE_TYPE_);   
 
 create index ACT_IDX_DJOB_SCOPE on ACT_RU_DEADLETTER_JOB(SCOPE_ID_, SCOPE_TYPE_);
 create index ACT_IDX_DJOB_SUB_SCOPE on ACT_RU_DEADLETTER_JOB(SUB_SCOPE_ID_, SCOPE_TYPE_);
 create index ACT_IDX_DJOB_SCOPE_DEF on ACT_RU_DEADLETTER_JOB(SCOPE_DEFINITION_ID_, SCOPE_TYPE_); 
 
-insert into ACT_GE_PROPERTY values ('job.schema.version', '6.2.1.0', 1);
+insert into ACT_GE_PROPERTY values ('job.schema.version', '6.3.0.0', 1);

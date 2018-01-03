@@ -17,20 +17,21 @@
                 </planItemOnPart>
             </sentry>
 
-            <task id="decisionTask" name="dmn" isBlocking="false" flowable:type="dmn">
+            <decisionTask id="decisionTask" name="dmn" isBlocking="false" decisionRef="decisionTableInternal">
                 <extensionElements>
-                    <flowable:field name="decisionTableReferenceKey">
-                        <flowable:string><![CDATA[decisionTable]]></flowable:string>
-                    </flowable:field>
                     <flowable:field name="decisionTaskThrowErrorOnNoHits">
-                        <flowable:string><![CDATA[${throwErrorOnNoHits}]]></flowable:string>
+                        <flowable:expression><![CDATA[${throwErrorOnNoHits}]]></flowable:expression>
                     </flowable:field>
                 </extensionElements>
-            </task>
+            </decisionTask>
+
+
 
             <task id="task" name="The Task" isBlocking="true" />
 
         </casePlanModel>
     </case>
+
+    <decision id="decisionTableInternal" name="Simple decision table" externalRef="decisionTable"/>
 
 </definitions>

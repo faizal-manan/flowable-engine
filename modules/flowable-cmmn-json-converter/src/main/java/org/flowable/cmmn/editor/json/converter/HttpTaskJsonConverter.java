@@ -12,8 +12,8 @@
  */
 package org.flowable.cmmn.editor.json.converter;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
 import org.flowable.cmmn.editor.json.converter.CmmnJsonConverter.CmmnModelIdHelper;
 import org.flowable.cmmn.model.BaseElement;
@@ -21,16 +21,15 @@ import org.flowable.cmmn.model.CaseElement;
 import org.flowable.cmmn.model.CmmnModel;
 import org.flowable.cmmn.model.HttpServiceTask;
 
-import java.util.Map;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Tijs Rademakers
  * @author Yvo Swillens
  * @author martin.grofcik
  */
-public class HttpTaskJsonConverter extends BaseCmmnJsonConverter implements DecisionTableAwareConverter {
-
-    protected Map<String, String> decisionTableMap;
+public class HttpTaskJsonConverter extends BaseCmmnJsonConverter {
 
     public static void fillTypes(Map<String, Class<? extends BaseCmmnJsonConverter>> convertersToCmmnMap) {
 
@@ -51,8 +50,8 @@ public class HttpTaskJsonConverter extends BaseCmmnJsonConverter implements Deci
 
         HttpServiceTask task = new HttpServiceTask();
 
-        if (StringUtils.isNotEmpty(getPropertyValueAsString(PROPERTY_SERVICETASK_CLASS, elementNode))) {
-            task.setImplementation(getPropertyValueAsString(PROPERTY_SERVICETASK_CLASS, elementNode));
+        if (StringUtils.isNotEmpty(CmmnJsonConverterUtil.getPropertyValueAsString(PROPERTY_SERVICETASK_CLASS, elementNode))) {
+            task.setImplementation(CmmnJsonConverterUtil.getPropertyValueAsString(PROPERTY_SERVICETASK_CLASS, elementNode));
         }
 
         addField("requestMethod", PROPERTY_HTTPTASK_REQ_METHOD, elementNode, task);
@@ -77,8 +76,4 @@ public class HttpTaskJsonConverter extends BaseCmmnJsonConverter implements Deci
 
     }
 
-    @Override
-    public void setDecisionTableMap(Map<String, String> decisionTableMap) {
-        this.decisionTableMap = decisionTableMap;
-    }
 }

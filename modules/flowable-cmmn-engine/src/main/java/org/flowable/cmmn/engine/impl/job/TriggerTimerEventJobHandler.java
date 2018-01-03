@@ -24,7 +24,7 @@ import org.flowable.variable.api.delegate.VariableScope;
  */
 public class TriggerTimerEventJobHandler implements JobHandler {
 
-    public static final String TYPE = "trigger-timer";
+    public static final String TYPE = "cmmn-trigger-timer";
 
     @Override
     public String getType() {
@@ -34,7 +34,7 @@ public class TriggerTimerEventJobHandler implements JobHandler {
     @Override
     public void execute(JobEntity job, String configuration, VariableScope variableScope, CommandContext commandContext) {
         PlanItemInstanceEntity planItemInstance = (PlanItemInstanceEntity) variableScope;
-        CommandContextUtil.getAgenda(commandContext).planTriggerPlanItemInstance(planItemInstance);
+        CommandContextUtil.getAgenda(commandContext).planTriggerPlanItemInstanceOperation(planItemInstance);
     }
     
 }
