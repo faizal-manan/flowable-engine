@@ -13,9 +13,8 @@
 package org.flowable.engine.common.api.delegate.event;
 
 /**
- * Dispatcher which allows for adding and removing {@link FlowableEventListener} s to the Flowable
- * Engine as well as dispatching {@link FlowableEvent} to all the listeners registered.
- *
+ * Dispatcher which allows for adding and removing {@link FlowableEventListener} s to the Flowable Engine as well as dispatching {@link FlowableEvent} to all the listeners registered.
+ * 
  * @author Frederik Heremans
  */
 public interface FlowableEventDispatcher {
@@ -64,15 +63,5 @@ public interface FlowableEventDispatcher {
      * @return true, if event dispatcher is enabled.
      */
     boolean isEnabled();
-
-    /**
-     * @return true, if event dispatcher is enabled.
-     */
-    boolean isTransactionEnabled();
-
-    /**
-     * @param enabled true, if event dispatching should be enabled.
-     */
-    void setTransactionEnabled(boolean enabled);
 
 }

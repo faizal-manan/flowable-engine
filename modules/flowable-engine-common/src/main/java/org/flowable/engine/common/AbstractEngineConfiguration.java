@@ -12,6 +12,23 @@
  */
 package org.flowable.engine.common;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+
+import javax.naming.InitialContext;
+import javax.sql.DataSource;
+
 import org.apache.ibatis.builder.xml.XMLConfigBuilder;
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
 import org.apache.ibatis.datasource.pooled.PooledDataSource;
@@ -47,29 +64,11 @@ import org.flowable.engine.common.impl.interceptor.SessionFactory;
 import org.flowable.engine.common.impl.interceptor.TransactionContextInterceptor;
 import org.flowable.engine.common.impl.persistence.StrongUuidGenerator;
 import org.flowable.engine.common.impl.persistence.entity.Entity;
-import org.flowable.engine.common.impl.transaction.TransactionDependentFactory;
 import org.flowable.engine.common.impl.util.DefaultClockImpl;
 import org.flowable.engine.common.impl.util.IoUtil;
 import org.flowable.engine.common.runtime.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-
-import javax.naming.InitialContext;
-import javax.sql.DataSource;
 
 public abstract class AbstractEngineConfiguration {
 
@@ -175,13 +174,10 @@ public abstract class AbstractEngineConfiguration {
     protected Map<Class<?>, SessionFactory> sessionFactories;
 
     protected boolean enableEventDispatcher = true;
-    protected boolean enableTransactionEventDispatcher = true;
     protected FlowableEventDispatcher eventDispatcher;
     protected List<FlowableEventListener> eventListeners;
     protected Map<String, List<FlowableEventListener>> typedEventListeners;
     protected List<EventDispatchAction> additionalEventDispatchActions;
-
-    protected TransactionDependentFactory transactionDependentFactory;
 
     protected boolean transactionsExternallyManaged;
 
@@ -1273,15 +1269,6 @@ public abstract class AbstractEngineConfiguration {
         return this;
     }
 
-//    public List<TransactionFlowableEventListener> getTransactionEventListeners() {
-//        return transactionDependentEventListeners;
-//    }
-
-//    public AbstractEngineConfiguration setTransactionEventListeners(List<TransactionFlowableEventListener> eventListeners) {
-//        this.transactionDependentEventListeners = eventListeners;
-//        return this;
-//    }
-
     public Map<String, List<FlowableEventListener>> getTypedEventListeners() {
         return typedEventListeners;
     }
@@ -1289,14 +1276,6 @@ public abstract class AbstractEngineConfiguration {
     public AbstractEngineConfiguration setTypedEventListeners(Map<String, List<FlowableEventListener>> typedEventListeners) {
         this.typedEventListeners = typedEventListeners;
         return this;
-    }
-
-    public TransactionDependentFactory getTransactionDependentFactory() {
-        return transactionDependentFactory;
-    }
-
-    public void setTransactionDependentFactory(TransactionDependentFactory transactionDependentFactory) {
-        this.transactionDependentFactory = transactionDependentFactory;
     }
 
     public List<EventDispatchAction> getAdditionalEventDispatchActions() {

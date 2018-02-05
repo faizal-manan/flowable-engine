@@ -12,7 +12,7 @@
  */
 package org.flowable.engine.impl.history.async.json.transformer;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.Date;
 
 import org.flowable.engine.common.api.delegate.event.FlowableEngineEventType;
 import org.flowable.engine.common.impl.interceptor.CommandContext;
@@ -23,7 +23,7 @@ import org.flowable.engine.impl.persistence.entity.HistoricActivityInstanceEntit
 import org.flowable.engine.impl.util.CommandContextUtil;
 import org.flowable.job.service.impl.persistence.entity.HistoryJobEntity;
 
-import java.util.Date;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class ActivityFullHistoryJsonTransformer extends AbstractHistoryJsonTransformer {
 
@@ -64,7 +64,7 @@ public class ActivityFullHistoryJsonTransformer extends AbstractHistoryJsonTrans
         historicActivityInstanceEntityManager.insert(historicActivityInstanceEntity);
         dispatchEvent(commandContext, FlowableEventBuilder.createEntityEvent(
                 FlowableEngineEventType.HISTORIC_ACTIVITY_INSTANCE_CREATED, historicActivityInstanceEntity));
-
+        
         dispatchEvent(commandContext, FlowableEventBuilder.createEntityEvent(
                 FlowableEngineEventType.HISTORIC_ACTIVITY_INSTANCE_ENDED, historicActivityInstanceEntity));
     }

@@ -12,6 +12,14 @@
  */
 package org.flowable.idm.engine;
 
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.transaction.TransactionFactory;
 import org.flowable.engine.common.AbstractEngineConfiguration;
@@ -85,14 +93,6 @@ import org.flowable.idm.engine.impl.persistence.entity.data.impl.MybatisUserData
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
 public class IdmEngineConfiguration extends AbstractEngineConfiguration {
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(IdmEngineConfiguration.class);
@@ -163,7 +163,6 @@ public class IdmEngineConfiguration extends AbstractEngineConfiguration {
     }
 
     public IdmEngineConfiguration() {
-        this.enableTransactionEventDispatcher = false;
     }
 
     // buildProcessEngine
@@ -190,11 +189,11 @@ public class IdmEngineConfiguration extends AbstractEngineConfiguration {
 
         initBeans();
         initTransactionFactory();
-
+        
         if (usingRelationalDatabase) {
             initSqlSessionFactory();
         }
-
+        
         initSessionFactories();
         initPasswordEncoder();
         initServices();
@@ -400,7 +399,6 @@ public class IdmEngineConfiguration extends AbstractEngineConfiguration {
         }
 
         this.eventDispatcher.setEnabled(enableEventDispatcher);
-        this.eventDispatcher.setTransactionEnabled(enableTransactionEventDispatcher);
 
         if (eventListeners != null) {
             for (FlowableEventListener listenerToAdd : eventListeners) {
